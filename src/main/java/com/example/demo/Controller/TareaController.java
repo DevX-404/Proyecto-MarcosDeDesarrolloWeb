@@ -62,45 +62,75 @@ public class TareaController {
         return "Profesor/tareas"; 
     }
 
-    // Create & Update: Guardar Tarea
-    @PostMapping("/tareas/{profesorId}/guardar")
+    // Create & Update: Guardar Tarea (AJUSTADO para Multipart y manejo de errores de curso)
+    @PostMapping(value = "/tareas/{profesorId}/guardar", consumes = {"multipart/form-data"})
     public String guardarTarea(@PathVariable Long profesorId,
                                @Valid @ModelAttribute("tareaDTO") TareaDTO tareaDTO,
                                BindingResult result,
                                RedirectAttributes redirectAttributes) {
 
-        Long redirectCourseId = tareaDTO.getCursoId(); 
+        Long redirectCourseId = tareaDTO.getCursoId();
         
+        // 1. Manejo del Archivo y Nombre
+        String nombreAdjuntoGuardar = null;
+        if (tareaDTO.getArchivoAdjunto() != null && !tareaDTO.getArchivoAdjunto().isEmpty()) {
+            nombreAdjuntoGuardar = tareaDTO.getArchivoAdjunto().getOriginalFilename();
+            // Lógica PENDIENTE: Aquí iría el código para guardar físicamente el archivo.
+        }
+
+        // 2. Validación de BindingResult (Validación de campos obligatorios)
         if (result.hasErrors()) {
-            redirectAttributes.addFlashAttribute("showTareaModal", true); 
+            // Si hay errores de validación (@NotBlank, @FutureOrPresent), reabre el modal
+            redirectAttributes.addFlashAttribute("showTareaModal", true);
             redirectAttributes.addFlashAttribute("tareaDTO", tareaDTO);
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.tareaDTO", result);
-            redirectAttributes.addFlashAttribute("error", "Error al guardar la tarea. Revisa los campos.");
+            redirectAttributes.addFlashAttribute("error", "Error al guardar la tarea. Revisa los campos obligatorios."); 
             
             return "redirect:/profesor/tareas/" + profesorId + (redirectCourseId != null ? "?cursoId=" + redirectCourseId : "");
+        }
+        
+        // 3. Obtener el Curso (CRÍTICO: Verifica que el ID no se haya perdido en el Multipart form)
+        if (tareaDTO.getCursoId() == null) {
+            redirectAttributes.addFlashAttribute("error", "Error interno: El ID del curso no fue proporcionado en el formulario.");
+            return "redirect:/profesor/cursos/" + profesorId;
         }
 
         Optional<Curso> optionalCurso = cursoService.obtenerCursoPorId(tareaDTO.getCursoId());
         if (optionalCurso.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Curso no encontrado.");
-            return "redirect:/profesor/tareas/" + profesorId + (redirectCourseId != null ? "?cursoId=" + redirectCourseId : "");
+            redirectAttributes.addFlashAttribute("error", "Error: El curso con ID " + tareaDTO.getCursoId() + " no fue encontrado.");
+            return "redirect:/profesor/cursos/" + profesorId;
         }
 
-        // Mapear DTO a Entidad 
-        Tarea tarea = new Tarea();
+        // 4. Mapear DTO a Entidad y Guardar
+        Tarea tarea;
         if (tareaDTO.getId() != null) {
-            tarea = tareaService.obtenerTareaPorId(tareaDTO.getId()).orElse(tarea);
+            tarea = tareaService.obtenerTareaPorId(tareaDTO.getId())
+                                .orElse(new Tarea());
+        } else {
+            tarea = new Tarea();
         }
         
         tarea.setTitulo(tareaDTO.getTitulo());
         tarea.setDescripcion(tareaDTO.getDescripcion());
         tarea.setFechaLimite(tareaDTO.getFechaLimite());
         tarea.setTipo(tareaDTO.getTipo());
-        tarea.setCurso(optionalCurso.get());
+        tarea.setUrlRecurso(tareaDTO.getUrlRecurso());
+        
+        // 5. Asignar relaciones y adjunto
+        tarea.setCurso(optionalCurso.get()); 
+        
+        if (nombreAdjuntoGuardar != null) {
+            tarea.setNombreAdjunto(nombreAdjuntoGuardar);
+        } else if (tarea.getId() == null) {
+            // Nueva tarea sin archivo adjunto
+            tarea.setNombreAdjunto(null); 
+        }
+        // Si es edición y no subió un archivo nuevo, mantendrá el anterior (comportamiento por defecto de JPA)
 
         tareaService.guardarTarea(tarea);
-        redirectAttributes.addFlashAttribute("mensaje", "Tarea guardada exitosamente!");
-        return "redirect:/profesor/tareas/" + profesorId + "?cursoId=" + redirectCourseId;
+        
+        redirectAttributes.addFlashAttribute("success", "Tarea guardada correctamente.");
+        return "redirect:/profesor/tareas/" + profesorId + (redirectCourseId != null ? "?cursoId=" + redirectCourseId : "");
     }
 
     // Delete: Eliminar Tarea

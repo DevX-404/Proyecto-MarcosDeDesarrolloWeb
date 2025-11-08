@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class TareaDTO {
@@ -29,4 +30,9 @@ public class TareaDTO {
 
     @NotNull(message = "Debe estar asociado a un curso.")
     private Long cursoId;
+
+    private MultipartFile archivoAdjunto;
+    
+    private String urlRecurso;
+
 }

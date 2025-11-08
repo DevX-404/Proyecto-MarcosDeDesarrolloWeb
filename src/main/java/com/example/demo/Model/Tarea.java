@@ -27,6 +27,11 @@ public class Tarea {
     @Column(nullable = false)
     private Boolean completada = false;
 
+    private String urlRecurso;
+        
+    private String nombreAdjunto; 
+    
+
     // Relación ManyToOne con Curso
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "curso_id", nullable = false)

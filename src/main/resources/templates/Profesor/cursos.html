@@ -11,21 +11,18 @@
     <style>
         /* Estabilidad de la Card de Curso */
         .course-card-clean {
-            /* Mantiene la altura consistente y habilita Flexbox */
             min-height: 200px;
             display: flex;
-            flex-direction: column; 
+            flex-direction: column;
         }
-        
-        /* Asegura que el cuerpo de la card use el espacio restante */
+
         .course-card-clean .card-body {
             display: flex;
             flex-direction: column;
-            flex-grow: 1; /* Permite que el cuerpo crezca */
+            flex-grow: 1;
         }
-        
-        /* Asegura que los botones queden pegados al fondo de la card-body */
-        .course-card-clean .card-body > .d-flex.gap-2.mt-3 {
+
+        .course-card-clean .card-body>.d-flex.gap-2.mt-3 {
             margin-top: auto !important;
         }
     </style>
@@ -80,6 +77,13 @@
             <span th:text="${mensaje}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+        
+        <div th:if="${#vars.containsVariable('error') and !#fields.hasErrors('cursoDTO')}"
+            class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="fw-bold fs-3 mb-0">
@@ -160,9 +164,9 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-
-                        <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}">
-                            Error al crear el curso. Revisa los campos.
+                        
+                        <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger" role="alert">
+                            ¡Error de validación! Por favor, corrige los campos marcados.
                         </div>
 
                         <div class="mb-3">
@@ -209,9 +213,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script th:src="@{/js/script.js}"></script>
+    
     <script th:if="${#fields.hasErrors('cursoDTO') or (showModal ?: false)}" th:src="@{/js/modal_validation.js}"></script>
     
     <script>
+        // ESTO SE MANTIENE PARA LA LIMPIEZA DEL MODAL AL CERRAR
         document.addEventListener('DOMContentLoaded', function () {
             const modalElement = document.getElementById('crearCursoModal');
 
@@ -219,8 +225,11 @@
                 modalElement.addEventListener('hidden.bs.modal', function () {
                     const form = this.querySelector('form');
                     form.reset();
+                    
                     form.querySelector('input[name="id"]').value = '';
+                    
                     form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                    form.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
                 });
             }
         });

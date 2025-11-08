@@ -4,12 +4,12 @@
 
     <div class="modal fade" id="crearTareaModal" tabindex="-1" aria-labelledby="crearTareaModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg"> 
             <div class="modal-content">
                 <form th:action="@{/profesor/tareas/{profesorId}/guardar(profesorId=${profesorId})}" method="post"
-                    th:object="${tareaDTO}">
+                    th:object="${tareaDTO}" enctype="multipart/form-data"> 
+                    
                     <input type="hidden" th:field="*{id}" />
-
                     <input type="hidden" th:field="*{cursoId}" th:value="${cursoSeleccionadoId}" />
 
                     <div class="modal-header bg-primary text-white">
@@ -18,45 +18,76 @@
                             aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-
-                        <div class="mb-3">
-                            <label for="titulo" class="form-label">Título</label>
-                            <input type="text" class="form-control" id="titulo" th:field="*{titulo}"
-                                th:classappend="${#fields.hasErrors('titulo')} ? 'is-invalid' : ''">
-                            <div class="invalid-feedback" th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}">
-                                Error Título</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="descripcion" class="form-label">Descripción</label>
-                            <textarea class="form-control" id="descripcion" th:field="*{descripcion}" rows="3"
-                                th:classappend="${#fields.hasErrors('descripcion')} ? 'is-invalid' : ''"></textarea>
-                            <div class="invalid-feedback" th:if="${#fields.hasErrors('descripcion')}"
-                                th:errors="*{descripcion}">Error Descripción</div>
+                        
+                        <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger" role="alert">
+                            ¡Error de validación! Por favor, corrige los campos marcados.
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="fechaLimite" class="form-label">Fecha Límite</label>
-                                <input type="date" class="form-control" id="fechaLimite" th:field="*{fechaLimite}"
-                                    th:classappend="${#fields.hasErrors('fechaLimite')} ? 'is-invalid' : ''">
-                                <div class="invalid-feedback" th:if="${#fields.hasErrors('fechaLimite')}"
-                                    th:errors="*{fechaLimite}">Error Fecha Límite</div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-dark mb-3">Detalles Obligatorios</h6>
+                                
+                                <div class="mb-3">
+                                    <label for="titulo" class="form-label">Título</label>
+                                    <input type="text" class="form-control" id="titulo" th:field="*{titulo}"
+                                        th:classappend="${#fields.hasErrors('titulo')} ? 'is-invalid' : ''">
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}">
+                                        Error Título</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="descripcion" class="form-label">Descripción</label>
+                                    <textarea class="form-control" id="descripcion" th:field="*{descripcion}" rows="3"
+                                        th:classappend="${#fields.hasErrors('descripcion')} ? 'is-invalid' : ''"></textarea>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('descripcion')}"
+                                        th:errors="*{descripcion}">Error Descripción</div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="fechaLimite" class="form-label">Fecha Límite</label>
+                                        <input type="date" class="form-control" id="fechaLimite" th:field="*{fechaLimite}"
+                                            th:classappend="${#fields.hasErrors('fechaLimite')} ? 'is-invalid' : ''">
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('fechaLimite')}"
+                                            th:errors="*{fechaLimite}">Error Fecha Límite</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="tipo" class="form-label">Tipo de Actividad</label>
+                                        <select class="form-select" id="tipo" th:field="*{tipo}"
+                                            th:classappend="${#fields.hasErrors('tipo')} ? 'is-invalid' : ''">
+                                            <option value="">Selecciona...</option>
+                                            <option value="Tarea">Tarea</option>
+                                            <option value="Práctica">Práctica</option>
+                                            <option value="Examen">Examen</option>
+                                        </select>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}">
+                                            Error Tipo</div>
+                                    </div>
+                                </div>
+
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="tipo" class="form-label">Tipo de Actividad</label>
-                                <select class="form-select" id="tipo" th:field="*{tipo}"
-                                    th:classappend="${#fields.hasErrors('tipo')} ? 'is-invalid' : ''">
-                                    <option value="">Selecciona...</option>
-                                    <option value="Tarea">Tarea</option>
-                                    <option value="Práctica">Práctica</option>
-                                    <option value="Examen">Examen</option>
-                                </select>
-                                <div class="invalid-feedback" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}">
-                                    Error Tipo</div>
+                            
+                            <div class="col-md-6 border-start ps-4">
+                                <h6 class="fw-bold text-muted mb-3">Recursos Adicionales (Opcional)</h6>
+                                
+                                <div class="mb-3">
+                                    <label for="archivoAdjunto" class="form-label">Subir Archivo Adjunto</label>
+                                    <input type="file" class="form-control" id="archivoAdjunto" name="archivoAdjunto" />
+                                    <div class="form-text">Máx. 10MB (PDF, DOCX, ZIP, etc.)</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="urlRecurso" class="form-label">Enlace a Recurso Externo (URL)</label>
+                                    <input type="url" class="form-control" id="urlRecurso" th:field="*{urlRecurso}"
+                                        placeholder="Ej: https://youtube.com/video" />
+                                </div>
+
+                                <div th:if="${tareaDTO.id != null and tareaDTO.nombreAdjunto}" class="alert alert-info py-2 small">
+                                    Archivo actual: <span th:text="${tareaDTO.nombreAdjunto}"></span>
+                                </div>
+
                             </div>
                         </div>
-
+                        
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
