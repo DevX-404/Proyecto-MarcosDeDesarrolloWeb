@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profesor - Calificar | Eduverse</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+
+<body>
+    <header>
+        <div class="menu-toggle text-white">&#9776;</div>
+        <div class="logo fw-bold">Eduverse</div>
+        <div class="user">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle me-1"></i> Prof. Demo
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-person-badge"></i> Mi Perfil</a></li>
+                    <li><a class="dropdown-item" th:href="@{/login}"><i class="bi bi-box-arrow-right"></i> Cerrar
+                            sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="sidebar bg-dark" id="sidebar">
+        <a th:href="@{/profesor/cursos/{id}(id=${profesorId})}">
+            <i class="bi bi-journals"></i><span>Mis Cursos</span><small>Cursos</small>
+        </a>
+        <a th:href="@{/profesor/lista/{id}(id=${profesorId})}">
+            <i class="bi bi-people-fill"></i><span>Lista</span><small>Lista</small>
+        </a>
+        <a th:href="@{/profesor/tareas/{id}(id=${profesorId})}">
+            <i class="bi bi-list-task"></i><span>Tareas</span><small>Tareas</small>
+        </a>
+        <a th:href="@{/profesor/notas/{id}(id=${profesorId})}" class="active-link">
+            <i class="bi bi-bar-chart-line-fill"></i><span>Notas</span><small>Notas</small>
+        </a>
+        <a href="#">
+            <i class="bi bi-person-fill"></i><span>Perfil</span><small>Perfil</small>
+        </a>
+        <a href="#">
+            <i class="bi bi-megaphone-fill"></i><span>Avisos</span><small>Avisos</small>
+        </a>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="content p-4" id="content">
+        <h1 class="fw-bold fs-3 mb-2">
+            <i class="bi bi-person-fill-check me-2"></i> Calificar: <span th:text="${tarea.titulo}"></span>
+        </h1>
+        <p class="text-muted mb-4">
+            Curso: <span class="fw-semibold" th:text="${tarea.curso.nombre}">[Nombre del Curso]</span> | Tipo: <span
+                th:text="${tarea.tipo}"></span> | Límite: <span
+                th:text="${#temporals.format(tarea.fechaLimite, 'dd/MM/yyyy')}"></span>
+        </p>
+
+        <form
+            th:action="@{/profesor/notas/guardar/{tareaId}/{profesorId}(tareaId=${tarea.id}, profesorId=${profesorId})}"
+            method="post" th:object="${calificacionesWrapper}">
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white fw-bold">
+                    Ingreso de Notas
+                </div>
+                <div class="card-body p-0">
+
+                    <div th:if="${calificacionesWrapper.calificacionesList.isEmpty()}" class="alert alert-info m-3">
+                        Todos los alumnos ya tienen calificación para esta actividad o no se encontraron alumnos pendientes.
+                    </div>
+
+                    <div th:unless="${calificacionesWrapper.calificacionesList.isEmpty()}" class="table-responsive">
+                        <table class="table table-striped align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Alumno</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-center" style="width: 150px;">Nota (0.0 - 20.0)</th>
+                                    <th>Comentario del Profesor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="calificacion, stat : *{calificacionesList}">
+
+                                    <input type="hidden" th:field="*{calificacionesList[__${stat.index}__].id}" />
+                                    <input type="hidden" th:field="*{calificacionesList[__${stat.index}__].tareaId}" />
+                                    <input type="hidden" th:hidden="true" th:field="*{calificacionesList[__${stat.index}__].alumnoId}" />
+                                    <input type="hidden" th:hidden="true" th:field="*{calificacionesList[__${stat.index}__].nombreAlumno}" />
+                                    <input type="hidden" th:hidden="true" th:field="*{calificacionesList[__${stat.index}__].estadoEntrega}" />
+
+
+                                    <td th:text="${stat.count}">1</td>
+                                    <td th:text="${calificacion.nombreAlumno}">Juan Pérez</td>
+                                    <td class="text-center">
+                                        <span
+                                            th:classappend="${calificacion.estadoEntrega == 'Pendiente'} ? 'badge bg-warning text-dark' : 'badge bg-success'"
+                                            th:text="${calificacion.estadoEntrega}">Pendiente</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="number"
+                                            th:field="*{calificacionesList[__${stat.index}__].nota}"
+                                            min="0.0" max="20.0" step="0.1"
+                                            class="form-control form-control-sm text-center"
+                                            placeholder="Nota">
+                                    </td>
+                                    <td>
+                                        <input type="text" th:field="*{calificacionesList[__${stat.index}__].comentario}"
+                                            class="form-control form-control-sm" placeholder="Comentario">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a th:href="@{/profesor/notas/{profesorId}(profesorId=${profesorId}, cursoId=${tarea.curso.id})}"
+                    class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver a Tareas Vencidas
+                </a>
+                <button th:unless="${calificacionesWrapper.calificacionesList.isEmpty()}" type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-save me-1"></i> Guardar Calificaciones
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <footer class="bg-dark text-white text-center p-3 mt-4">
+        <p class="mb-0">© 2024 Eduverse - Portal Escolar | Contacto: soporte@eduverse.com</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/script.js}"></script>
+</body>
+</html>

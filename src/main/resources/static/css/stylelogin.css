@@ -1,0 +1,56 @@
+/* Estilos para el body */
+body {
+    /* Fondo degradado suave para dar un aspecto moderno */
+    background: linear-gradient(135deg, #f0f2f5 0%, #e0e7ee 100%);
+}
+
+/* Estilos para la tarjeta de login */
+.login-card {
+    max-width: 450px; /* Ancho máximo para que no se extienda mucho */
+    width: 100%;
+    border-radius: 15px; /* Bordes más suaves */
+    /* Sombra más sutil y elevada */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); 
+    background-color: #ffffff;
+}
+
+/* Estilo para el icono del logo */
+.logo-icon {
+    font-size: 3rem; /* Tamaño grande para el icono */
+    color: #007bff; /* Color primario de Bootstrap (azul) */
+}
+
+/* Ajustes a los inputs para que se vean más limpios */
+.form-control {
+    border-radius: 8px;
+    padding: 10px 15px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}
+
+/* Estilo para el input group */
+.input-group-text {
+    background-color: #f8f9fa;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    color: #6c757d;
+}
+
+/* Estilo para el botón */
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    border-radius: 8px;
+    padding: 12px 0;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    transform: translateY(-2px); /* Pequeño efecto de elevación */
+}

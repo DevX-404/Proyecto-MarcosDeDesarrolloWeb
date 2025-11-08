@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="tarea-modal(profesorId, cursoSeleccionadoId, tareaDTO)">
+
+    <div class="modal fade" id="crearTareaModal" tabindex="-1" aria-labelledby="crearTareaModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form th:action="@{/profesor/tareas/{profesorId}/guardar(profesorId=${profesorId})}" method="post"
+                    th:object="${tareaDTO}">
+                    <input type="hidden" th:field="*{id}" />
+
+                    <input type="hidden" th:field="*{cursoId}" th:value="${cursoSeleccionadoId}" />
+
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="crearTareaModalLabel">Crear Nueva Tarea</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label for="titulo" class="form-label">Título</label>
+                            <input type="text" class="form-control" id="titulo" th:field="*{titulo}"
+                                th:classappend="${#fields.hasErrors('titulo')} ? 'is-invalid' : ''">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}">
+                                Error Título</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcion" th:field="*{descripcion}" rows="3"
+                                th:classappend="${#fields.hasErrors('descripcion')} ? 'is-invalid' : ''"></textarea>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('descripcion')}"
+                                th:errors="*{descripcion}">Error Descripción</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fechaLimite" class="form-label">Fecha Límite</label>
+                                <input type="date" class="form-control" id="fechaLimite" th:field="*{fechaLimite}"
+                                    th:classappend="${#fields.hasErrors('fechaLimite')} ? 'is-invalid' : ''">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('fechaLimite')}"
+                                    th:errors="*{fechaLimite}">Error Fecha Límite</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="tipo" class="form-label">Tipo de Actividad</label>
+                                <select class="form-select" id="tipo" th:field="*{tipo}"
+                                    th:classappend="${#fields.hasErrors('tipo')} ? 'is-invalid' : ''">
+                                    <option value="">Selecciona...</option>
+                                    <option value="Tarea">Tarea</option>
+                                    <option value="Práctica">Práctica</option>
+                                    <option value="Examen">Examen</option>
+                                </select>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}">
+                                    Error Tipo</div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</html>
