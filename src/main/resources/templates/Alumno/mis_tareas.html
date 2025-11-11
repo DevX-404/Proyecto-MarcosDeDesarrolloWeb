@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alumno - Mis Tareas | Eduverse</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <style>
+        .task-list-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+        }
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            /* Flexbox para alinear el contenido de la tarjeta */
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        .task-status-tag {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .status-pendiente {
+            background-color: #ffc10733; /* Amarillo claro */
+            color: #b08900; /* Amarillo oscuro */
+        }
+        .status-completada {
+            background-color: #d1e7dd; /* Verde claro */
+            color: #0f5132; /* Verde oscuro */
+        }
+        .status-vencido {
+            background-color: #f8d7da; /* Rojo claro */
+            color: #842029; /* Rojo oscuro */
+        }
+        /* Nueva clase para asegurar que los detalles y acciones se alineen correctamente */
+        .task-main-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="menu-toggle text-white">&#9776;</div>
+        <div class="logo fw-bold">Eduverse</div>
+        <div class="user">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle me-1"></i> <span th:text="${nombreAlumno ?: 'Alumno Demo'}">Alumno Demo</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a th:href="@{/alumno/perfil/{id}(id=${alumnoId})}" class="dropdown-item"><i class="bi bi-person-badge"></i> Mi Perfil</a></li>
+                    <li><a th:href="@{/login}" class="dropdown-item"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="sidebar bg-dark" id="sidebar">
+        <a th:href="@{/alumno/cursos/{id}(id=${alumnoId})}">
+            <i class="bi bi-journals"></i><span>Mis Cursos</span><small>Cursos</small>
+        </a>
+        <a th:href="@{/alumno/tareas/{id}(id=${alumnoId})}" class="active-link">
+            <i class="bi bi-list-task"></i><span>Mis Tareas</span><small>Tareas</small>
+        </a>
+        <a th:href="@{/alumno/notas/{id}(id=${alumnoId})}">
+            <i class="bi bi-bar-chart-line-fill"></i><span>Mis Notas</span><small>Notas</small>
+        </a>
+        <a th:href="@{/alumno/perfil/{id}(id=${alumnoId})}">
+            <i class="bi bi-person-fill"></i><span>Mi Perfil</span><small>Perfil</small>
+        </a>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="content p-4" id="content">
+        <h1 class="fw-bold fs-3 mb-4"><i class="bi bi-list-task me-2"></i> Mis Tareas Pendientes</h1>
+        <p class="text-muted mb-4">Revisa las actividades y exámenes asignados en tus cursos. Bienvenido, <span th:text="${nombreAlumno}"></span>.</p>
+
+        <div th:if="${tareasPorCurso.isEmpty()}" class="alert alert-success">
+            ¡Felicidades! No tienes tareas pendientes en tus cursos.
+        </div>
+        
+        <th:block th:each="cursoGroup : ${tareasPorCurso}">
+
+            <div class="card task-list-card mb-4">
+                <div class="card-body p-0">
+                    
+                    <div th:each="tarea : ${cursoGroup['tareas']}" class="task-item">
+                        
+                        <div class="mb-2 w-100">
+                            <h4 class="fw-semibold fs-6 mb-0 text-primary" th:text="${cursoGroup['cursoNombre']}">Nombre del Curso</h4>
+                        </div>
+
+                        <div class="task-main-row">
+                            <div class="task-details">
+                                <h5 class="mb-1 fw-bold fs-6" th:text="${tarea['titulo']}">Título de la Tarea</h5>
+                                <div class="text-muted small">
+                                    Tipo: <span th:text="${tarea['tipo']}"></span> | 
+                                    Límite: <span th:text="${#temporals.format(tarea['fechaLimite'], 'dd/MM/yyyy')}"></span>
+                                </div>
+                            </div>
+                            <div class="task-actions d-flex align-items-center gap-3">
+                                <span class="task-status-tag" 
+                                    th:classappend="${tarea['estado'] == 'Calificada'} ? 'status-completada' : (${tarea['estado'] == 'Entregada'} ? 'status-entregada' : (${tarea['estado'] == 'VENCIDO'} ? 'status-vencido' : 'status-pendiente'))"
+                                    th:text="${tarea['estado']}">Estado</span>
+                                
+                                <a th:href="@{/alumno/tarea/detalle/{tareaId}(tareaId=${tarea['id']}, alumnoId=${alumnoId})}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-arrow-right-circle me-1"></i> Ir a Actividad
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+        
+    </div>
+    
+    <footer class="bg-dark text-white text-center p-3 mt-4">
+        <p class="mb-0">© 2024 Eduverse - Portal Escolar | Contacto: soporte@eduverse.com</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/script.js}"></script>
+</body>
+</html>

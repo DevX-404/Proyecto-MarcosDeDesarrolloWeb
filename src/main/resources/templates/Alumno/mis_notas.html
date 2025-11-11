@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alumno - Mis Notas | Eduverse</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <style>
+        .note-card {
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            background-color: #fff;
+        }
+
+        .note-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1.5rem;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .note-promedio {
+            background-color: #007bff;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+        }
+
+        .evaluation-item {
+            padding: 0.8rem 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .evaluation-item:last-child {
+            border-bottom: none;
+        }
+
+        .formula-box {
+            background-color: #e6f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        /* Estilo para filas colapsables */
+        .bimestre-row {
+            cursor: pointer;
+        }
+        .bimestre-row:hover {
+            background-color: #f0f0f0;
+        }
+        
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="menu-toggle text-white">&#9776;</div>
+        <div class="logo fw-bold">Eduverse</div>
+        <div class="user">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle me-1"></i> <span th:text="${nombreAlumno}">Alumno Demo</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a th:href="@{/alumno/perfil/{id}(id=${alumnoId})}" class="dropdown-item"><i
+                                class="bi bi-person-badge"></i> Mi Perfil</a></li>
+                    <li><a th:href="@{/login}" class="dropdown-item"><i class="bi bi-box-arrow-right"></i> Cerrar
+                            sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="sidebar bg-dark" id="sidebar">
+        <a th:href="@{/alumno/cursos/{id}(id=${alumnoId})}">
+            <i class="bi bi-journals"></i><span>Mis Cursos</span><small>Cursos</small>
+        </a>
+        <a th:href="@{/alumno/tareas/{id}(id=${alumnoId})}">
+            <i class="bi bi-list-task"></i><span>Mis Tareas</span><small>Tareas</small>
+        </a>
+        <a th:href="@{/alumno/notas/{id}(id=${alumnoId})}" class="active-link">
+            <i class="bi bi-bar-chart-line-fill"></i><span>Mis Notas</span><small>Notas</small>
+        </a>
+        <a th:href="@{/alumno/perfil/{id}(id=${alumnoId})}">
+            <i class="bi bi-person-fill"></i><span>Mi Perfil</span><small>Perfil</small>
+        </a>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="content p-4" id="content">
+        <h1 class="fw-bold fs-3 mb-4">
+            <i class="bi bi-bar-chart-line-fill me-2"></i> Módulo de Mis Notas
+        </h1>
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form th:action="@{/alumno/notas/{id}(id=${alumnoId})}" method="GET" id="filtroCursoForm">
+                    <div class="d-flex align-items-center">
+                        <label for="cursoId" class="form-label me-3 mb-0 fw-semibold">Seleccionar Curso:</label>
+                        <select id="cursoId" name="cursoId" class="form-select w-auto"
+                            onchange="document.getElementById('filtroCursoForm').submit()">
+                            <option value="">--- Selecciona un Curso ---</option>
+                            <option th:each="curso : ${cursosMatriculados}" th:value="${curso.id}"
+                                th:selected="${curso.id == cursoSeleccionadoId}" th:text="${curso.nombre}">
+                                Nombre del Curso
+                            </option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${cursoSeleccionadoId == null}" class="alert alert-info">
+            Por favor, selecciona un curso para ver el detalle de tus notas y evaluaciones.
+        </div>
+
+        <div th:if="${notasDetalle != null}" class="note-card shadow-lg">
+
+            <div class="note-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h2 class="fw-bold fs-4 mb-1" th:text="${notasDetalle.cursoNombre}">Nombre del Curso</h2>
+                        <p class="text-muted mb-0 small" th:text="'Docente: ' + ${notasDetalle.profesorNombre}"></p>
+                        <p class="text-muted mb-0 small" th:text="'Modalidad de curso: ' + ${notasDetalle.modalidad}"></p>
+                    </div>
+                    
+                    <div class="note-promedio text-center">
+                        <span class="d-block fw-light small">Promedio Final:</span>
+                        <span class="fw-bold fs-3" th:text="${notasDetalle.promedioFinal}">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+
+                <h3 class="fw-semibold fs-5 mb-3"><i class="bi bi-journal-check me-2"></i> Resumen Bimestral</h3>
+                
+                <table class="table table-sm table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Bimestre</th>
+                            <th scope="col" class="text-center">Promedio</th>
+                            <th scope="col" class="text-center">Condición</th>
+                            <th scope="col" style="width: 50px;"></th> </tr>
+                    </thead>
+                    <tbody>
+                        <th:block th:each="resumen, stat : ${notasDetalle.resumenBimestral}">
+                            
+                            <tr th:id="'header-' + ${stat.index}" class="bimestre-row" data-bs-toggle="collapse" 
+                                th:data-bs-target="'#detail-' + ${stat.index}" aria-expanded="false" 
+                                th:aria-controls="'detail-' + ${stat.index}">
+                                
+                                <td th:text="${resumen.nombre}">Bimestre 1</td>
+                                <td th:text="${resumen.promedio}" class="text-center fw-bold">15.5</td>
+                                <td class="text-center">
+                                    <span th:if="${resumen.promedio != '--' and #numbers.formatDecimal(resumen.promedio, 1, 'POINT') >= 10.5}" 
+                                        class="badge bg-success">Aprobado</span>
+                                    <span th:if="${resumen.promedio != '--' and #numbers.formatDecimal(resumen.promedio, 1, 'POINT') < 10.5}" 
+                                        class="badge bg-danger">Reforzamiento</span>
+                                    <span th:if="${resumen.promedio == '--'}" class="badge bg-secondary">Pendiente</span>
+                                </td>
+                                <td class="text-center">
+                                    <i class="bi bi-chevron-down small expand-icon"></i>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td colspan="4" class="p-0 border-0">
+                                    <div class="collapse" th:id="'detail-' + ${stat.index}">
+                                        <div class="card card-body py-2 px-4 bg-light border-0 rounded-0">
+                                            <h6 class="fw-bold mb-2 small text-primary" th:text="'Evaluaciones de ' + ${resumen.nombre}"></h6>
+                                            
+                                            <div th:with="bimestreActual=${resumen.nombre}">
+                                                <table class="table table-borderless table-sm mb-0">
+                                                    <tbody>
+                                                        <tr th:each="eval : ${notasDetalle.evaluaciones}" 
+                                                            th:if="${eval.bimestre == bimestreActual}">
+                                                            
+                                                            <td style="width: 60%;" class="small">
+                                                                <i th:classappend="${eval.tipo == 'Examen' ? 'bi bi-file-earmark-text-fill' : 'bi bi-clipboard-check'}"></i>
+                                                                <span th:text="${eval.titulo}"></span> 
+                                                                <span class="text-muted small" th:text="' (' + ${eval.tipo} + ')'"></span>
+                                                            </td>
+                                                            <td style="width: 20%;" class="text-center small fw-bold" th:text="${eval.nota}"></td>
+                                                            <td style="width: 20%;" class="text-center">
+                                                                <span th:text="${eval.estado}" class="badge" 
+                                                                    th:classappend="${eval.estado == 'Calificado' ? 'bg-success' : 'bg-warning text-dark'}"></span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </th:block>
+                    </tbody>
+                </table>
+                <hr/>
+
+                <h3 class="fw-semibold fs-5 mb-3"><i class="bi bi-calculator me-2"></i> Fórmula de Promedio Final</h3>
+                <div class="formula-box mb-4">
+                    <span th:text="${notasDetalle.formulaTexto}">Fórmula...</span>
+                </div>
+                <hr/>
+
+
+                <h3 class="fw-semibold fs-5 mb-3"><i class="bi bi-list-check me-2"></i> Notas Detalladas (Prácticas y Exámenes)</h3>
+
+                <div th:unless="${notasDetalle.evaluaciones.isEmpty()}" class="px-3">
+                    <div class="d-flex fw-bold text-muted border-bottom py-2 small">
+                        <span class="col-6">Evaluación (Bimestre)</span>
+                        <span class="col-2 text-center">Tipo</span>
+                        <span class="col-2 text-center">Nota / 20</span>
+                        <span class="col-2 text-center">Estado</span>
+                    </div>
+                    
+                    <div th:each="eval : ${notasDetalle.evaluaciones}" class="evaluation-item d-flex align-items-center">
+                        <div class="col-6">
+                            <i class="bi bi-dot me-2 text-primary"></i> 
+                            <span th:text="${eval.titulo}"></span>
+                            <span class="text-muted small fw-semibold" th:text="' (' + ${eval.bimestre} + ')'"></span>
+                        </div>
+                        <div class="col-2 text-center" th:text="${eval.tipo}"></div>
+                        <div class="col-2 text-center fw-bold" th:classappend="${eval.nota != '--' ? 'text-dark' : 'text-muted'}" th:text="${eval.nota}"></div>
+                        <div class="col-2 text-center">
+                            <span th:text="${eval.estado}" class="badge" 
+                                th:classappend="${eval.estado == 'Calificado' ? 'bg-success' : 'bg-warning text-dark'}"></span>
+                        </div>
+                    </div>
+                </div>
+                <div th:if="${notasDetalle.evaluaciones.isEmpty()}" class="alert alert-warning small">
+                    No hay Prácticas o Exámenes registrados para este curso.
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <footer class="bg-dark text-white text-center p-3 mt-4">
+        <p class="mb-0">© 2024 Eduverse - Portal Escolar | Contacto: soporte@eduverse.com</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/script.js}"></script>
+    
+    <script>
+        // JS para rotar la flecha al expandir/contraer y manejar el clic en la fila
+        document.addEventListener('DOMContentLoaded', function () {
+            const collapseElements = document.querySelectorAll('.collapse');
+
+            collapseElements.forEach(collapseEl => {
+                const icon = document.querySelector('[data-bs-target="#' + collapseEl.id + '"]').querySelector('.expand-icon');
+                
+                collapseEl.addEventListener('show.bs.collapse', function () {
+                    if (icon) {
+                        icon.classList.add('bi-chevron-up');
+                        icon.classList.remove('bi-chevron-down');
+                    }
+                });
+                
+                collapseEl.addEventListener('hide.bs.collapse', function () {
+                    if (icon) {
+                        icon.classList.remove('bi-chevron-up');
+                        icon.classList.add('bi-chevron-down');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

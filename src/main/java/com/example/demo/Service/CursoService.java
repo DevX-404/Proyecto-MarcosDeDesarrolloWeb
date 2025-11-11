@@ -1,7 +1,10 @@
 package com.example.demo.Service;
 
+import com.example.demo.Model.Alumno;
 import com.example.demo.Model.Curso;
 import com.example.demo.Repository.CursoRepository;
+import com.example.demo.Repository.MatriculaRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -12,6 +15,9 @@ public class CursoService {
 
     @Autowired
     private CursoRepository cursoRepository;
+
+    @Autowired 
+    private MatriculaRepository matriculaRepository;
 
     public List<Curso> listarTodos() {
         return cursoRepository.findAll();
@@ -35,6 +41,9 @@ public class CursoService {
     public Optional<Curso> obtenerCursoPorId(Long id) {
         return cursoRepository.findById(id);
     }
-
-    
+        
+    // NUEVO MÉTODO
+    public List<Alumno> findAlumnosMatriculadosByCursoId(Long cursoId) {
+        return matriculaRepository.findAlumnosByCursoId(cursoId); 
+    }
 }
