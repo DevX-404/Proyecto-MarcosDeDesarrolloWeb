@@ -45,6 +45,8 @@ public class AlumnoController {
     @Autowired 
     private CalificacionService calificacionService;
 
+    private static final String UPLOAD_DIR = "src/main/resources/static/img/perfiles/";
+
     // Módulo: Mis Cursos
     @GetMapping("/cursos/{alumnoId}")
     public String misCursos(@PathVariable Long alumnoId, Model model) {
@@ -56,6 +58,7 @@ public class AlumnoController {
         model.addAttribute("alumnoId", alumnoId);
         model.addAttribute("nombreAlumno", alumno.getNombreCompleto());
         model.addAttribute("cursos", cursosConProgreso);
+        model.addAttribute("alumno",alumno);
         
         return "Alumno/mis_cursos"; 
     }
@@ -169,10 +172,61 @@ public class AlumnoController {
         
         model.addAttribute("alumnoId", alumnoId);
         model.addAttribute("alumno", alumno);
+        model.addAttribute("fotoDTO", new FotoDTO());
         
         return "Alumno/mi_perfil";
     }
+
+    @PostMapping(value = "/perfil/{alumnoId}/actualizar-foto", consumes = {"multipart/form-data"})
+    public String actualizarFoto(
+            @PathVariable Long alumnoId,
+            @Valid @ModelAttribute("fotoDTO") FotoDTO fotoDTO,
+            BindingResult result,
+            RedirectAttributes redirectAttributes) 
+    {
+        if (result.hasErrors() || fotoDTO.getFoto().isEmpty()) {
+             redirectAttributes.addFlashAttribute("error", "Debe seleccionar un archivo de imagen.");
+             return "redirect:/alumno/perfil/" + alumnoId;
+        } 
+        
+        Alumno alumno = alumnoRepository.findById(alumnoId)
+                                     .orElseThrow(() -> new RuntimeException("Alumno no encontrado."));
+
+        String filename = "alumno_" + alumnoId + "_perfil." + getFileExtension(fotoDTO.getFoto().getOriginalFilename());
+        
+        try {
+            // Asegura que el directorio exista (creando si es necesario)
+            Path uploadPath = Paths.get(UPLOAD_DIR);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+            
+            // 1. Guardar archivo físicamente
+            Path filePath = uploadPath.resolve(filename);
+            Files.copy(fotoDTO.getFoto().getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // 2. Actualizar la URL en la base de datos
+            alumno.setFotoUrl("/img/perfiles/" + filename);
+            alumnoRepository.save(alumno); // Guardar la entidad actualizada
+            
+            redirectAttributes.addFlashAttribute("mensaje", "Foto de perfil actualizada con éxito.");
+            
+        } catch (Exception e) {
+            System.err.println("Error al guardar la foto: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Error interno al subir la foto.");
+        }
+        
+        return "redirect:/alumno/perfil/" + alumnoId;
+    }
     
+    // Método auxiliar para obtener la extensión del archivo
+    private String getFileExtension(String filename) {
+        if (filename == null || filename.lastIndexOf('.') == -1) {
+            return "jpg"; // Devuelve default si no hay extensión
+        }
+        return filename.substring(filename.lastIndexOf('.') + 1);
+    }
+
     // Módulo: Procesar Cambio de Contraseña
     @PostMapping("/perfil/{id}/cambiar-clave")
     public String cambiarClave(
@@ -197,35 +251,4 @@ public class AlumnoController {
         return "redirect:/alumno/perfil/" + id;
     }
 
-    // Módulo: Procesar Actualización de Foto
-    @PostMapping(value = "/perfil/{id}/actualizar-foto", consumes = {"multipart/form-data"})
-    public String actualizarFoto(
-            @PathVariable Long id,
-            @ModelAttribute FotoDTO fotoDTO,
-            RedirectAttributes redirectAttributes) 
-    {
-        if (fotoDTO.getFoto() == null || fotoDTO.getFoto().isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Debe seleccionar un archivo de imagen para actualizar la foto.");
-        } else {
-            // Lógica para guardar el archivo en disco (simulada)
-            
-            String uploadDir = "target/classes/static/img/perfiles/";
-            try {
-                Path uploadPath = Paths.get(uploadDir);
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-                String filename = "alumno_" + id + "_foto.jpg"; 
-                Path filePath = uploadPath.resolve(filename);
-                Files.copy(fotoDTO.getFoto().getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-                redirectAttributes.addFlashAttribute("mensaje", 
-                    "Foto de perfil actualizada con éxito.");
-            } catch (Exception e) {
-                redirectAttributes.addFlashAttribute("error", "Error al guardar la foto: " + e.getMessage());
-            }
-        }
-        
-        return "redirect:/alumno/perfil/" + id;
-    }
 }

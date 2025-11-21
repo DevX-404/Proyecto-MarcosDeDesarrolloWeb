@@ -76,7 +76,17 @@
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
                     data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-person-circle me-1"></i> <span th:text="${nombreAlumno ?: 'Alumno Demo'}">Alumno Demo</span>
+                    
+                    <img th:if="${alumno != null and alumno.fotoUrl != null}" 
+                         th:src="@{${alumno.fotoUrl}}" 
+                         alt="Foto" 
+                         class="rounded-circle me-1" 
+                         style="width: 25px; height: 25px; object-fit: cover;">
+                         
+                    <i th:unless="${alumno != null and alumno.fotoUrl != null}" 
+                       class="bi bi-person-circle me-1"></i> 
+                       
+                    <span th:text="${nombreAlumno ?: 'Alumno Demo'}">Alumno Demo</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a th:href="@{/alumno/perfil/{id}(id=${alumnoId})}" class="dropdown-item"><i class="bi bi-person-badge"></i> Mi Perfil</a></li>
@@ -191,8 +201,6 @@
           let dots = document.getElementsByClassName("dot");
 
           // Resetea el contador del carrusel automático
-          // Es importante detener el temporizador antes de mostrar el slide manualmente
-          clearTimeout(); // Esto puede ser riesgoso, es mejor guardar la referencia del timer, pero para esta implementación simple, continuaremos
           
           slideIndex = n;
           
@@ -206,11 +214,7 @@
           
           slides[slideIndex-1].style.display = "block";  
           dots[slideIndex-1].className += " active-dot";
-
-          // Para reiniciar el carrusel automático después de una selección manual
-          // Necesitarías modificar la función showSlides para devolver la referencia del timeout
-          // Por ahora, solo se muestra el slide.
         }
     </script>
-    </body>
+</body>
 </html>

@@ -20,4 +20,7 @@ public class Alumno {
 
     @Column(nullable = false)
     private String correo;
+
+    @Column(length = 225)
+    private String fotoUrl;
 }

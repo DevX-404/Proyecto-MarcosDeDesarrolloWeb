@@ -70,7 +70,16 @@
         <div class="row">
             <div class="col-lg-4 col-md-5 text-center mb-4">
                 <div class="profile-card p-4 bg-light">
-                    <i class="bi bi-person-bounding-box text-muted" id="profile-picture" style="font-size: 8rem;"></i>
+                    <img th:if="${alumno.fotoUrl}" 
+                         th:src="@{${alumno.fotoUrl}}" 
+                         alt="Foto de Perfil" 
+                         class="rounded-circle border border-primary p-1" 
+                         style="width: 120px; height: 120px; object-fit: cover;">
+                         
+                    <i th:unless="${alumno.fotoUrl}"
+                       class="bi bi-person-bounding-box text-muted" id="profile-picture" 
+                       style="font-size: 8rem;"></i>
+                       
                     <h2 class="fs-4 fw-bold mt-3" th:text="${alumno.nombreCompleto}"></h2>
                     <p class="text-muted" th:text="${alumno.codigoAlumno}"></p>
                     
@@ -79,15 +88,18 @@
                         <i class="bi bi-key-fill me-1"></i> Cambiar Contraseña
                     </button>
                     
-                    <form th:action="@{/alumno/perfil/{id}/actualizar-foto(id=${alumnoId})}" method="post" 
+                    <form th:action="@{/alumno/perfil/{alumnoId}/actualizar-foto(alumnoId=${alumnoId})}" 
+                          method="post" th:object="${fotoDTO}"
                           enctype="multipart/form-data" id="photo-upload-form">
                         
-                        <input type="file" id="photo-input" name="foto" accept="image/*" style="display: none;">
+                        <input type="file" id="photo-input" th:field="*{foto}" accept="image/*" style="display: none;">
                         
-                        <button type="button" class="btn btn-outline-secondary mt-2 w-100" id="trigger-photo-upload">
+                        <button type="button" class="btn btn-outline-primary mt-2 w-100" id="trigger-photo-upload">
                             <i class="bi bi-camera-fill me-1"></i> Actualizar Foto
                         </button>
                         
+                        <div th:if="${#fields.hasErrors('foto')}" class="text-danger small mt-1" th:errors="*{foto}">Error de archivo</div>
+
                     </form>
                 </div>
             </div>
