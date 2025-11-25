@@ -18,6 +18,9 @@ public class Alumno {
     @Column(nullable = false, unique = true, length = 10)
     private String codigoAlumno; 
 
+    @Column(nullable = false, length = 60)
+    private String password;
+
     @Column(nullable = false)
     private String correo;
 

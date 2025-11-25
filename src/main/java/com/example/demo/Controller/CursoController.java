@@ -34,7 +34,7 @@ public class CursoController {
         model.addAttribute("cursos", cursos);
         model.addAttribute("profesorId", profesorId);
         model.addAttribute("profesorNombre",
-                profesorRepository.findById(profesorId).map(Profesor::getNombre).orElse("Profesor"));
+                profesorRepository.findById(profesorId).map(Profesor::getNombreCompleto).orElse("Profesor"));
 
         if (!model.containsAttribute("cursoDTO")) {
             model.addAttribute("cursoDTO", new CursoDTO());

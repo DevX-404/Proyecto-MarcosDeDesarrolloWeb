@@ -53,7 +53,7 @@ public class AlumnoService {
                 return Map.<String, Object>of(
                     "id", curso.getId(),
                     "nombre", curso.getNombre(),
-                    "profesorNombre", profesor.getNombre(), 
+                    "profesorNombre", profesor.getNombreCompleto(), 
                     "progreso", progresoSimulado
                 );
             })

@@ -14,10 +14,19 @@ public class Profesor {
     private Long id;
 
     @Column(nullable = false, length = 100)
-    private String nombre;
+    private String nombreCompleto;
 
     @Column(nullable = false, unique = true, length = 50)
-    private String codigo; // Usado como "username" en el login
+    private String codigoProfesor; 
+
+    @Column(nullable = false, length = 60)
+    private String password;
+
+    @Column(nullable = true)
+    private String correo;
+
+    @Column(length = 225)
+    private String fotoUrl;
 
     @OneToMany(mappedBy = "profesor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Curso> cursosDictados;

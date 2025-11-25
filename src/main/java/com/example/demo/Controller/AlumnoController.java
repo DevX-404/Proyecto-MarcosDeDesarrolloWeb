@@ -4,11 +4,15 @@ import com.example.demo.DTO.EntregaDTO;
 import com.example.demo.DTO.NotasDetalleDTO; 
 import com.example.demo.DTO.FotoDTO;
 import com.example.demo.Model.Alumno;
+import com.example.demo.Model.Aviso;
+import com.example.demo.Model.Matricula;
 import com.example.demo.Model.Tarea;
 import com.example.demo.Repository.AlumnoRepository;
 import com.example.demo.Service.AlumnoService;
 import com.example.demo.Service.CalificacionService; 
 import com.example.demo.Service.TareaService;
+import com.example.demo.Repository.AvisoRepository;
+import com.example.demo.Repository.MatriculaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,10 +24,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.Optional;
 
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,6 +50,12 @@ public class AlumnoController {
     
     @Autowired 
     private CalificacionService calificacionService;
+
+    @Autowired
+    private AvisoRepository avisoRepository;
+    
+    @Autowired
+    private MatriculaRepository matriculaRepository;
 
     private static final String UPLOAD_DIR = "src/main/resources/static/img/perfiles/";
 
@@ -230,25 +242,69 @@ public class AlumnoController {
     // Módulo: Procesar Cambio de Contraseña
     @PostMapping("/perfil/{id}/cambiar-clave")
     public String cambiarClave(
-            @PathVariable Long id,
-            @RequestParam String nuevaClave,
-            @RequestParam String confirmarClave,
-            RedirectAttributes redirectAttributes) 
-    {
-        if (nuevaClave.length() < 4) {
+        @PathVariable Long id,
+        @RequestParam String contrasenaAnterior,
+        @RequestParam String nuevaClave,
+        @RequestParam String confirmarClave,
+        RedirectAttributes redirectAttributes)
+        {
+            Alumno alumno = alumnoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Alumno no encontrado."));
+
+            String storedPassword = alumno.getPassword();
+            
+            if (storedPassword == null || !storedPassword.equals(contrasenaAnterior)) { 
+            redirectAttributes.addFlashAttribute("error", "La contraseña anterior ingresada es incorrecta.");
+            return "redirect:/alumno/perfil/" + id;
+            }
+
+            if (nuevaClave.length() < 4) {
              redirectAttributes.addFlashAttribute("error", "La nueva contraseña debe tener al menos 4 caracteres.");
              return "redirect:/alumno/perfil/" + id;
-        }
+            }
 
-        if (!nuevaClave.equals(confirmarClave)) {
-            redirectAttributes.addFlashAttribute("error", "Las contraseñas no coinciden.");
+            if (!nuevaClave.equals(confirmarClave)) {
+            redirectAttributes.addFlashAttribute("error", "La nueva contraseña y la confirmación no coinciden.");
+            return "redirect:/alumno/perfil/" + id;
+            }
+
+            alumno.setPassword(nuevaClave); 
+            alumnoRepository.save(alumno); 
+        
+            redirectAttributes.addFlashAttribute("mensaje", "¡Contraseña actualizada con éxito!");
             return "redirect:/alumno/perfil/" + id;
         }
 
-        redirectAttributes.addFlashAttribute("mensaje", 
-            "¡Contraseña actualizada con éxito! (Simulación).");
+        // Modulo: Avisos
+        @GetMapping("/avisos/{alumnoId}")
+    public String verAvisos(@PathVariable Long alumnoId, Model model) {
         
-        return "redirect:/alumno/perfil/" + id;
-    }
+        Optional<Alumno> alumnoOpt = alumnoRepository.findById(alumnoId);
+        if (alumnoOpt.isEmpty()) {
+            return "redirect:/login"; 
+        }
+        Alumno alumno = alumnoOpt.get();
+        model.addAttribute("alumno", alumno);
+        
+        // 1. Obtener los IDs de todos los cursos en los que el alumno está matriculado
+        List<Matricula> matriculas = matriculaRepository.findByAlumnoId(alumnoId);
+        List<Long> cursoIds = matriculas.stream()
+                                     .map(m -> m.getCurso().getId())
+                                     .collect(Collectors.toList());
 
+        List<Aviso> avisos;
+        
+        // 2. Filtrar los avisos: generales O específicos de los cursos del alumno.
+        if (cursoIds.isEmpty()) {
+             // Si no tiene cursos matriculados, solo mostramos avisos generales
+             avisos = avisoRepository.findByCursoIsNullOrderByFechaPublicacionDesc();
+        } else {
+             // Usamos la consulta personalizada para filtrar por generales o cursos específicos
+             avisos = avisoRepository.findGeneralAndCourseSpecificAvisos(cursoIds);
+        }
+
+        model.addAttribute("avisos", avisos);
+
+        return "Alumno/mis_avisos";
+    }
 }

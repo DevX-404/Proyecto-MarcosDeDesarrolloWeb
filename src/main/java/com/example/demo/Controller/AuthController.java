@@ -1,6 +1,7 @@
 package com.example.demo.Controller;
 
 import com.example.demo.Model.Alumno;
+import com.example.demo.Model.Aviso;
 import com.example.demo.Model.Calificacion;
 import com.example.demo.Model.Curso;
 import com.example.demo.Model.Matricula;
@@ -12,6 +13,7 @@ import com.example.demo.Repository.MatriculaRepository;
 import com.example.demo.Repository.ProfesorRepository;
 import com.example.demo.Repository.TareaRepository;
 import com.example.demo.Repository.CalificacionRepository;
+import com.example.demo.Repository.AvisoRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -39,13 +41,13 @@ public class AuthController {
             @RequestParam String password,
             Model model) {
 
-        Optional<Profesor> optionalProfesor = profesorRepository.findByCodigo(username);
-        if (optionalProfesor.isPresent() && password.equals("1234")) {
+        Optional<Profesor> optionalProfesor = profesorRepository.findByCodigoProfesor(username);
+        if (optionalProfesor.isPresent() && password.equals(optionalProfesor.get().getPassword())) {
             return "redirect:/profesor/cursos/" + optionalProfesor.get().getId();
-        } 
+        }
         
         Optional<Alumno> optionalAlumno = alumnoRepository.findByCodigoAlumno(username);
-        if (optionalAlumno.isPresent() && password.equals("1234")) {
+        if (optionalAlumno.isPresent() && password.equals(optionalAlumno.get().getPassword())) {
              return "redirect:/alumno/cursos/" + optionalAlumno.get().getId();
         }
         
@@ -58,6 +60,8 @@ public class AuthController {
     @Autowired
     private CursoRepository cursoRepository; 
     @Autowired
+    private AvisoRepository avisoRepository;
+    @Autowired
     private MatriculaRepository matriculaRepository;
     @Autowired
     private TareaRepository tareaRepository;
@@ -67,10 +71,12 @@ public class AuthController {
     @GetMapping("/initdata")
     public String initData() {
         // 1. OBTENER/CREAR Profesor (p)
-        Profesor p = profesorRepository.findByCodigo("P001").orElseGet(() -> {
+        Profesor p = profesorRepository.findByCodigoProfesor("P001").orElseGet(() -> {
             Profesor newP = new Profesor();
-            newP.setNombre("Profesora Luz Teresa Morales Vega");
-            newP.setCodigo("P001");
+            newP.setNombreCompleto("Profesora Luz Teresa Morales Vega");
+            newP.setCodigoProfesor("P001");
+            newP.setCorreo("luz.morales@inst.edu");
+            newP.setPassword("1234"); // Contraseña inicial
             return profesorRepository.save(newP);
         });
 
@@ -80,6 +86,7 @@ public class AuthController {
             newA.setNombreCompleto("Ximena Burga Mendo");
             newA.setCodigoAlumno("U001");
             newA.setCorreo("xime@inst.edu");
+            newA.setPassword("1234");
             return alumnoRepository.save(newA);
         });
         Alumno a2 = alumnoRepository.findByCodigoAlumno("U002").orElseGet(() -> {
@@ -87,6 +94,7 @@ public class AuthController {
             newA.setNombreCompleto("Luis Bances Oliden");
             newA.setCodigoAlumno("U002");
             newA.setCorreo("luis@inst.edu");
+            newA.setPassword("1234");
             return alumnoRepository.save(newA);
         });
         Alumno a3 = alumnoRepository.findByCodigoAlumno("U003").orElseGet(() -> {
@@ -94,6 +102,7 @@ public class AuthController {
             newA.setNombreCompleto("Antony Quispe Rodas");
             newA.setCodigoAlumno("U003");
             newA.setCorreo("anto@inst.edu");
+            newA.setPassword("1234");
             return alumnoRepository.save(newA);
         });
 
@@ -159,6 +168,37 @@ public class AuthController {
             calificacionRepository.save(calJuan);
         }
 
+        if (p != null && avisoRepository.count() == 0) {
+            
+            // 1. Aviso general del profesor
+            Aviso aviso1 = new Aviso();
+            aviso1.setTitulo("Inicio de Semestre");
+            aviso1.setContenido("Bienvenidos al nuevo periodo académico. Revisen sus horarios.");
+            aviso1.setProfesor(p); 
+            avisoRepository.save(aviso1);
+
+            // 2. Aviso para un curso específico
+            if (c1 != null) {
+                Aviso aviso2 = new Aviso();
+                aviso2.setTitulo("Tarea 3 de Álgebra");
+                aviso2.setContenido("Recordatorio: La Tarea #3 de Álgebra se cierra mañana.");
+                aviso2.setProfesor(p);
+                aviso2.setCurso(c1);
+                avisoRepository.save(aviso2);
+            }
+            
+            // 3. Aviso para otro curso
+            if (c2 != null) {
+                Aviso aviso3 = new Aviso();
+                aviso3.setTitulo("Clase de Biología suspendida");
+                aviso3.setContenido("La clase de hoy de Biología se pospone.");
+                aviso3.setProfesor(p);
+                aviso3.setCurso(c2);
+                avisoRepository.save(aviso3);
+            }
+        }
+        
         return "redirect:/login";
     }
 }
+

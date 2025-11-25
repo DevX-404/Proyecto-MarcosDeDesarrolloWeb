@@ -163,7 +163,7 @@ public class CalificacionService {
         NotasDetalleDTO dto = new NotasDetalleDTO();
         dto.setCursoId(curso.getId());
         dto.setCursoNombre(curso.getNombre());
-        dto.setProfesorNombre(curso.getProfesor().getNombre());
+        dto.setProfesorNombre(curso.getProfesor().getNombreCompleto());
         dto.setModalidad(curso.getModalidad());
         
         dto.setEvaluaciones(evaluaciones); 
