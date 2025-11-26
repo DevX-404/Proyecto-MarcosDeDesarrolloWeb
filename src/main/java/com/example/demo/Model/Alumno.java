@@ -26,4 +26,8 @@ public class Alumno {
 
     @Column(length = 225)
     private String fotoUrl;
+
+    public String getRole(){
+        return "ROLE_ALUMNO";
+    }
 }

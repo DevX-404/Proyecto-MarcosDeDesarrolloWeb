@@ -17,44 +17,16 @@ import com.example.demo.Repository.AvisoRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 @Controller 
 public class AuthController {
 
     @Autowired
     private ProfesorRepository profesorRepository;
-
-    @GetMapping("/login") 
-    public String showLoginForm() {
-        return "login"; 
-    }
-
-    @PostMapping("/login")
-    public String processLogin(@RequestParam String username,
-            @RequestParam String password,
-            Model model) {
-
-        Optional<Profesor> optionalProfesor = profesorRepository.findByCodigoProfesor(username);
-        if (optionalProfesor.isPresent() && password.equals(optionalProfesor.get().getPassword())) {
-            return "redirect:/profesor/cursos/" + optionalProfesor.get().getId();
-        }
-        
-        Optional<Alumno> optionalAlumno = alumnoRepository.findByCodigoAlumno(username);
-        if (optionalAlumno.isPresent() && password.equals(optionalAlumno.get().getPassword())) {
-             return "redirect:/alumno/cursos/" + optionalAlumno.get().getId();
-        }
-        
-        model.addAttribute("error", "Credenciales incorrectas");
-        return "login";
-    }
-
     @Autowired
     private AlumnoRepository alumnoRepository;
     @Autowired
@@ -67,6 +39,14 @@ public class AuthController {
     private TareaRepository tareaRepository;
     @Autowired
     private CalificacionRepository calificacionRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder; 
+
+
+    @GetMapping("/login") 
+    public String showLoginForm() {
+        return "login"; 
+    }
 
     @GetMapping("/initdata")
     public String initData() {
@@ -76,7 +56,7 @@ public class AuthController {
             newP.setNombreCompleto("Profesora Luz Teresa Morales Vega");
             newP.setCodigoProfesor("P001");
             newP.setCorreo("luz.morales@inst.edu");
-            newP.setPassword("1234"); // Contraseña inicial
+            newP.setPassword(passwordEncoder.encode("1234")); // ⭐ CODIFICAR CONTRASENA
             return profesorRepository.save(newP);
         });
 
@@ -86,7 +66,7 @@ public class AuthController {
             newA.setNombreCompleto("Ximena Burga Mendo");
             newA.setCodigoAlumno("U001");
             newA.setCorreo("xime@inst.edu");
-            newA.setPassword("1234");
+            newA.setPassword(passwordEncoder.encode("1234")); // ⭐ CODIFICAR CONTRASENA
             return alumnoRepository.save(newA);
         });
         Alumno a2 = alumnoRepository.findByCodigoAlumno("U002").orElseGet(() -> {
@@ -94,7 +74,7 @@ public class AuthController {
             newA.setNombreCompleto("Luis Bances Oliden");
             newA.setCodigoAlumno("U002");
             newA.setCorreo("luis@inst.edu");
-            newA.setPassword("1234");
+            newA.setPassword(passwordEncoder.encode("1234")); // ⭐ CODIFICAR CONTRASENA
             return alumnoRepository.save(newA);
         });
         Alumno a3 = alumnoRepository.findByCodigoAlumno("U003").orElseGet(() -> {
@@ -102,7 +82,7 @@ public class AuthController {
             newA.setNombreCompleto("Antony Quispe Rodas");
             newA.setCodigoAlumno("U003");
             newA.setCorreo("anto@inst.edu");
-            newA.setPassword("1234");
+            newA.setPassword(passwordEncoder.encode("1234")); // ⭐ CODIFICAR CONTRASENA
             return alumnoRepository.save(newA);
         });
 
@@ -201,4 +181,3 @@ public class AuthController {
         return "redirect:/login";
     }
 }
-

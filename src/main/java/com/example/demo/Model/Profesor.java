@@ -30,4 +30,8 @@ public class Profesor {
 
     @OneToMany(mappedBy = "profesor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Curso> cursosDictados;
+
+    public String getRole(){
+        return "ROLE_PROFESOR";
+    }
 }
